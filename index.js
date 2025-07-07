@@ -38,14 +38,18 @@ function hkdf(mediaKey, info, length = 112) {
         mediaKeyWordArray = CryptoJS.lib.WordArray.create(mediaKey);
     }
 
-    const prk = CryptoJS.HmacSHA256(mediaKeyWordArray, salt); 
-    
+    // O PRK (Pseudo-Random Key) é derivado da mediaKey e do salt
+    // Usamos CryptoJS.HmacSHA256 para calcular o PRK
+    const prk = CryptoJS.HmacSHA256(salt, mediaKeyWordArray); // Ordem dos argumentos: salt, key
+
     let okm = CryptoJS.lib.WordArray.create();
     let t = CryptoJS.lib.WordArray.create();
     
     const iterations = Math.ceil(length / 32);
     for (let i = 1; i <= iterations; i++) {
-        const hmac = CryptoJS.HmacSHA256.create(prk); 
+        // Cria uma nova instância de HMAC para cada iteração
+        // O primeiro argumento é o hasher (SHA256), o segundo é a chave (prk)
+        const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, prk); 
         hmac.update(t);
         hmac.update(CryptoJS.enc.Utf8.parse(info)); 
         hmac.update(CryptoJS.lib.WordArray.create([i])); 
@@ -84,7 +88,7 @@ function decryptWhatsAppMediaFromBase64(encBase64, mediaKeyB64, mediaType = "Aud
         const macKey = keys.clone().start(48).clamp(32);    
         
         // 4. Valida MAC
-        const hmacToVerify = CryptoJS.HmacSHA256.create(macKey);
+        const hmacToVerify = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, macKey); // Cria HMAC com a chave
         hmacToVerify.update(iv);
         hmacToVerify.update(cipherText);
         const macCalc = hmacToVerify.finalize().clamp(10); 
