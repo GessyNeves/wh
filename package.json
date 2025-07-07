@@ -1,0 +1,23 @@
+{
+  "name": "whatsapp-audio-decryptor",
+  "version": "1.0.0",
+  "description": "Service to decrypt WhatsApp audio files for n8n workaround.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "body-parser": "^1.20.1",
+    "crypto-js": "^4.2.0"
+  },
+  "keywords": [
+    "whatsapp",
+    "audio",
+    "decrypt",
+    "n8n",
+    "evolution-api"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
