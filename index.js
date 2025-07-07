@@ -38,9 +38,13 @@ function hkdf(mediaKey, info, length = 112) {
         mediaKeyWordArray = CryptoJS.lib.WordArray.create(mediaKey);
     }
 
-    // O PRK (Pseudo-Random Key) é derivado da mediaKey e do salt
-    // Usamos CryptoJS.HmacSHA256 para calcular o PRK
-    const prk = CryptoJS.HmacSHA256(salt, mediaKeyWordArray); // Ordem dos argumentos: salt, key
+    // Para HKDF, o PRK é HMAC-SHA256(salt, IKM)
+    // Onde IKM (Input Keying Material) é a mediaKey
+    // E o salt é o salt (que no nosso caso é zero)
+    // Então, a chave do HMAC é o salt, e a mensagem é a mediaKeyWordArray
+    const prk = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, salt);
+    prk.update(mediaKeyWordArray);
+    const prkFinal = prk.finalize(); // Finaliza para obter o PRK
 
     let okm = CryptoJS.lib.WordArray.create();
     let t = CryptoJS.lib.WordArray.create();
@@ -48,8 +52,8 @@ function hkdf(mediaKey, info, length = 112) {
     const iterations = Math.ceil(length / 32);
     for (let i = 1; i <= iterations; i++) {
         // Cria uma nova instância de HMAC para cada iteração
-        // O primeiro argumento é o hasher (SHA256), o segundo é a chave (prk)
-        const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, prk); 
+        // A chave é o PRK finalizado
+        const hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, prkFinal); 
         hmac.update(t);
         hmac.update(CryptoJS.enc.Utf8.parse(info)); 
         hmac.update(CryptoJS.lib.WordArray.create([i])); 
